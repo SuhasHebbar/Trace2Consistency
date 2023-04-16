@@ -3,11 +3,12 @@ package generator
 import (
 	"sort"
 
-	"github.com/SuhasHebbar/CS739-P3/common"
+	// "github.com/SuhasHebbar/CS739-P3/common"
+	"cchkr/common"
 )
 
 func Concat(distTrace map[int32]common.OpTrace) common.OpTrace {
-	serialTrace := make(common.OpTrace)
+	serialTrace := common.OpTrace{}
 	for _, trace := range distTrace {
 		serialTrace = append(serialTrace, trace...)
 	}
@@ -16,7 +17,7 @@ func Concat(distTrace map[int32]common.OpTrace) common.OpTrace {
 
 func Consecutive(sz int) []int {
 	firstPerm := make([]int, sz)
-	for i := 0; i < traceLen; i++ {
+	for i := 0; i < sz; i++ {
 		firstPerm[i] = i
 	}
 	return firstPerm
@@ -29,11 +30,13 @@ func NextPermutation(nums []int) bool {
 	left := IsSortedUntil(nums, RevAccess)
 
 	if left != last {
-		right := UpperBound(RevSplice(nums, first, left), RevAccess(left), RevAccess)
+		right := UpperBound(RevSplice(nums, first, left), RevAccess(nums, left), RevAccess)
 		RevSwap(nums, left, right)
 	}
 
 	sort.Reverse(sort.IntSlice(nums[len(nums)-left : len(nums)-first]))
+
+	return left != last
 }
 
 // Returns the index which is strictly less than the next element from the end
@@ -94,7 +97,7 @@ func UpperBound(nums []int, target int, access func([]int, int) int) int {
 	return first
 }
 
-func RevAccess(nums []int, int idx) int {
+func RevAccess(nums []int, idx int) int {
 	return nums[len(nums)-1-idx]
 }
 
