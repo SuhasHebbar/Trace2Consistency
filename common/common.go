@@ -9,6 +9,7 @@ const (
 
 type Operation struct {
 	ClientId int
+	SequenceNo int
 	Op int // #OpType
 	Key string
 	Value string
