@@ -15,7 +15,7 @@ type Generator struct {
 
 func NewGenerator(distTrace map[int32]common.OpTrace, verifierCh chan common.OpTrace) *Generator {
 	serialTrace := Concat(distTrace)
-	firstPerm := Consecutive(len(distTrace))
+	firstPerm := Consecutive(len(serialTrace))
 
 	return &Generator{
 		serialTrace: serialTrace,
@@ -39,6 +39,8 @@ func (g *Generator) RunGenerator() {
 			break
 		}
 	}
+
+	close(g.verifierCh)
 }
 
 func (g *Generator) getCurrentTrace() common.OpTrace {
