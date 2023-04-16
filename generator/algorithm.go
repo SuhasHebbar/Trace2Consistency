@@ -1,8 +1,6 @@
 package generator
 
 import (
-	"sort"
-
 	// "github.com/SuhasHebbar/CS739-P3/common"
 	"cchkr/common"
 )
@@ -25,16 +23,15 @@ func Consecutive(sz int) []int {
 
 // Adapted from https://en.cppreference.com/w/cpp/algorithm/next_permutation
 func NextPermutation(nums []int) bool {
-	first := 0
 	last := len(nums)
 	left := IsSortedUntil(nums, RevAccess)
 
 	if left != last {
-		right := UpperBound(RevSplice(nums, first, left), RevAccess(nums, left), RevAccess)
+		right := UpperBound(nums[len(nums)-left:], RevAccess(nums, left), RevAccess)
 		RevSwap(nums, left, right)
 	}
 
-	sort.Reverse(sort.IntSlice(nums[len(nums)-left : len(nums)-first]))
+	Reverse(nums[len(nums)-left:])
 
 	return left != last
 }
@@ -72,7 +69,7 @@ func IsSortedUntil(nums []int, access func([]int, int) int) int {
 }
 
 // Gets the first index strictly greater than the target
-// N when current element is the largest
+// N when target is at least largest element
 // Adapted from https://en.cppreference.com/w/cpp/algorithm/upper_bound
 func UpperBound(nums []int, target int, access func([]int, int) int) int {
 	first := 0
@@ -101,16 +98,30 @@ func RevAccess(nums []int, idx int) int {
 	return nums[len(nums)-1-idx]
 }
 
-func RevSplice(nums []int, first int, last int) []int {
-	n := len(nums)
-	return nums[n-first : n-last]
-}
-
 func RevSwap(nums []int, first int, second int) {
 	n := len(nums)
-	rFirst := n - first
-	rSecond := n - second
+	rFirst := n - 1 - first
+	rSecond := n - 1 - second
 	nums[rFirst], nums[rSecond] = nums[rSecond], nums[rFirst]
+}
+
+// Adapted from https://en.cppreference.com/w/cpp/algorithm/reverse
+func Reverse(nums []int) {
+	first := 0
+	last := len(nums)
+
+	// empty
+	if first == last {
+		return
+	}
+
+	last--
+	// swap the first and last pointer coming closer to the middle
+	for first < last {
+		nums[first], nums[last] = nums[last], nums[first]
+		first++
+		last--
+	}
 }
 
 func Comp(first int, second int) bool {
