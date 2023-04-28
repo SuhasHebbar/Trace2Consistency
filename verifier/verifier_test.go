@@ -16,7 +16,7 @@ func contains(slice []string, value string) bool {
 	return false
 }
 
-func TestCP(t *testing.T) {
+func TestNotSerializable(t *testing.T) {
 	// Client 1
 	w13 := common.Operation{
 		ClientId:   1,
@@ -95,24 +95,8 @@ func TestCP(t *testing.T) {
 		fmt.Println(consistencyTrace)
 	}
 
-	// if !contains(result.ConsistencyProvided, "eventual") {
-	// 	t.Fatalf("Trace does not satisfy eventual")
-	// }
-
-	// if !contains(result.ConsistencyProvided, "serializable") {
-	// 	t.Fatalf("Trace does not satisfy serializable")
-	// }
-
-	// if !contains(result.ConsistencyProvided, "consistent prefix") {
-	// 	t.Fatalf("Trace does not satisfy consistent prefix")
-	// }
-
-	// if !contains(result.ConsistencyProvided, "monotonic reads") {
-	// 	t.Fatalf("Trace does not satisfy monotonic reads")
-	// }
-
-	// if !contains(result.ConsistencyProvided, "read my writes") {
-	// 	t.Fatalf("Trace does not satisfy read my writes")
-	// }
+	if contains(result.ConsistencyProvided, "serializable") {
+		t.Fatalf("Trace satisfies serializable but it shouldn't")
+	}
 
 }
