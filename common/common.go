@@ -1,6 +1,5 @@
 package common
 
-
 // #OpType
 const (
 	READ = iota
@@ -8,11 +7,16 @@ const (
 )
 
 type Operation struct {
-	ClientId int
+	ClientId   int
 	SequenceNo int
-	Op int // #OpType
-	Key string
-	Value string
+	Op         int // #OpType
+	Key        string
+	Value      string
 }
 
 type OpTrace = []Operation
+
+type VerifierResult struct {
+	ConsistencyProvided []string
+	Trace               []OpTrace
+}
