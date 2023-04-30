@@ -80,14 +80,7 @@ func (v *Verifier) RunVerifier() {
 	v.resultCh <- verifierResult
 }
 
-// func Concat(distTrace map[int32]common.OpTrace) common.OpTrace {
-// 	serialTrace := common.OpTrace{}
-// 	for _, trace := range distTrace {
-// 		serialTrace = append(serialTrace, trace...)
-// 	}
-// 	return serialTrace
-// }
-
+// Check if this is a valid trace (reads make sense in terms of previous writes)
 func checkBasicConsistency(currTrace common.OpTrace) bool {
 	currWrittenVal := make(map[string]string)
 
@@ -119,6 +112,7 @@ func checkSerializable(currTrace common.OpTrace) bool {
 	return true
 }
 
+// Right now return true since CP is as good as eventual
 func checkConsistentPrefix(currTrace common.OpTrace) bool {
 	return true
 }
@@ -156,7 +150,6 @@ func checkMonotonicReads(currTrace common.OpTrace) bool {
 }
 
 // Reads cannot be reordered before preceeding writes
-
 func checkReadMyWrites(currTrace common.OpTrace) bool {
 	currSequenceNumber := make(map[int]map[string]int)
 	for _, opt := range currTrace {
@@ -187,90 +180,3 @@ func checkReadMyWrites(currTrace common.OpTrace) bool {
 	// }
 	return true
 }
-
-// func verify() {
-// 	// Client 1
-// 	w13 := common.Operation{
-// 		ClientId:   1,
-// 		SequenceNo: 0,
-// 		Op:         common.WRITE,
-// 		Key:        "Key",
-// 		Value:      "3",
-// 	}
-// 	r12 := common.Operation{
-// 		ClientId:   1,
-// 		SequenceNo: 1,
-// 		Op:         common.READ,
-// 		Key:        "Key",
-// 		Value:      "2",
-// 	}
-// 	r13 := common.Operation{
-// 		ClientId:   1,
-// 		SequenceNo: 2,
-// 		Op:         common.WRITE,
-// 		Key:        "Key",
-// 		Value:      "3",
-// 	}
-// 	c1 := common.OpTrace{
-// 		w13,
-// 		r12,
-// 		r13,
-// 	}
-
-// 	// Client 2
-// 	w22 := common.Operation{
-// 		ClientId:   2,
-// 		SequenceNo: 0,
-// 		Op:         common.WRITE,
-// 		Key:        "Key",
-// 		Value:      "2",
-// 	}
-// 	r23 := common.Operation{
-// 		ClientId:   2,
-// 		SequenceNo: 1,
-// 		Op:         common.READ,
-// 		Key:        "Key",
-// 		Value:      "3",
-// 	}
-// 	r22 := common.Operation{
-// 		ClientId:   2,
-// 		SequenceNo: 2,
-// 		Op:         common.WRITE,
-// 		Key:        "Key",
-// 		Value:      "2",
-// 	}
-// 	c2 := common.OpTrace{
-// 		w22,
-// 		r23,
-// 		r22,
-// 	}
-
-// 	distTrace := map[int32]common.OpTrace{
-// 		1: c1,
-// 		2: c2,
-// 	}
-
-// 	currTrace := Concat(distTrace)
-
-// 	// for i, opt := range serialTrace {
-// 	// 	fmt.Printf("%v ...\n", i)
-// 	// 	fmt.Println(opt.ClientId)
-// 	// 	fmt.Println(opt.Key)
-// 	// 	fmt.Println(opt.Value)
-// 	// 	fmt.Println(opt.SequenceNo)
-// 	// 	fmt.Println(opt.Op)
-// 	// }
-
-// 	fmt.Println(checkBasicConsistency(currTrace))
-
-// 	fmt.Println(checkSerializable(currTrace))
-
-// 	fmt.Println(checkMonotonicReads(currTrace))
-
-// 	fmt.Println(checkReadMyWrites(currTrace))
-
-// }
-
-// func main() {
-// 	verify()
-// }
