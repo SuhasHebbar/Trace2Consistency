@@ -62,7 +62,7 @@ func TestCP(t *testing.T) {
 		r22,
 	}
 
-	distTrace := map[int32]common.OpTrace{
+	distTrace := common.DistTrace{
 		1: c1,
 		2: c2,
 	}

@@ -15,6 +15,7 @@ type Operation struct {
 }
 
 type OpTrace = []Operation
+type DistTrace = map[int]OpTrace
 
 type VerifierResult struct {
 	ConsistencyProvided []string
