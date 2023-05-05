@@ -16,11 +16,11 @@ func NewVerifier(verifierCh chan common.OpTrace, resultCh chan common.VerifierRe
 func (v *Verifier) RunVerifier() {
 	numConsistencies := 0
 	consistencies := map[string]bool{
-		"serializable":      false,
-		"consistent prefix": false,
-		"monotonic reads":   false,
-		"read my writes":    false,
-		"eventual":          false,
+		"sequential consistency": false,
+		"consistent prefix":      false,
+		"monotonic reads":        false,
+		"read my writes":         false,
+		"eventual":               false,
 	}
 
 	var verifierResult common.VerifierResult
@@ -33,11 +33,11 @@ func (v *Verifier) RunVerifier() {
 				continue
 			}
 			switch consistency {
-			case "serializable":
+			case "sequential consistency":
 				if checkSerializable(trace) {
 					consistencies[consistency] = true
 					numConsistencies++
-					verifierResult.ConsistencyProvided = append(verifierResult.ConsistencyProvided, "serializable")
+					verifierResult.ConsistencyProvided = append(verifierResult.ConsistencyProvided, "sequential consistency")
 					verifierResult.Trace = append(verifierResult.Trace, trace)
 				}
 			case "consistent prefix":

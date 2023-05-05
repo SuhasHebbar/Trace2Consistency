@@ -3,6 +3,7 @@ package multitrace
 import (
 	"bufio"
 	"cchkr/common"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -13,7 +14,7 @@ func ParseFile(filename string) common.DistTrace {
 	// Open the file for reading
 	file, err := os.Open(filename)
 	if err != nil {
-		panic(fmt.Spritnf("Failed to open file with name %v with error %v!", filename, err))
+		panic(fmt.Sprintf("Failed to open file with name %v with error %v!", filename, err))
 	}
 	defer file.Close()
 
@@ -90,12 +91,12 @@ func ExtractKV(line string) map[string]string {
 	kv := map[string]string{}
 	for _, field := range fields {
 		// extract key, value from key=value
-		kvfield := string.Split(field, "=")
+		kvfield := strings.Split(field, "=")
 		if len(kvfield) != 2 {
 			panic(fmt.Sprintf("Expected a key value pair but found %v", field))
 		}
 
-		key, value := field[0], field[1]
+		key, value := kvfield[0], kvfield[1]
 		_, found := kv[key]
 		if found {
 			panic(fmt.Sprintf("Duplicate key %v found", key))

@@ -25,7 +25,7 @@ func TestConcat(t *testing.T) {
 		},
 	}
 
-	cted := Concat(map[int32]common.OpTrace{
+	cted := Concat(common.DistTrace{
 		1: trace,
 	})
 

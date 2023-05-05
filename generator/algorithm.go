@@ -5,7 +5,7 @@ import (
 	"cchkr/common"
 )
 
-func Concat(distTrace map[int32]common.OpTrace) common.OpTrace {
+func Concat(distTrace map[int]common.OpTrace) common.OpTrace {
 	serialTrace := common.OpTrace{}
 	for _, trace := range distTrace {
 		serialTrace = append(serialTrace, trace...)

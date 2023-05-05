@@ -1,22 +1,11 @@
-package verifier
+package multitrace
 
 import (
 	"cchkr/common"
-	"cchkr/generator"
-	"fmt"
 	"testing"
 )
 
-func contains(slice []string, value string) bool {
-	for _, item := range slice {
-		if item == value {
-			return true
-		}
-	}
-	return false
-}
-
-func TestNotSerializable(t *testing.T) {
+func TestGetTraceConsistencies(t *testing.T) {
 	// Client 1
 	w13 := common.Operation{
 		ClientId:   1,
@@ -77,26 +66,9 @@ func TestNotSerializable(t *testing.T) {
 		1: c1,
 		2: c2,
 	}
-	verifierCh := make(chan common.OpTrace, 1000)
-	resultch := make(chan common.VerifierResult)
-	g := generator.NewGenerator(distTrace, verifierCh)
-	go g.RunGenerator()
 
-	v := NewVerifier(verifierCh, resultch)
-	go v.RunVerifier()
-
-	result := <-v.resultCh
-
-	for _, consistency := range result.ConsistencyProvided {
-		fmt.Println(consistency)
-	}
-
-	for _, consistencyTrace := range result.Trace {
-		fmt.Println(consistencyTrace)
-	}
-
-	if contains(result.ConsistencyProvided, "sequential consistency") {
+	output := GetTraceConsistencies(distTrace)
+	if output.Exists("sequential consistency") {
 		t.Fatalf("Trace satisfies sequential consistency but it shouldn't")
 	}
-
 }

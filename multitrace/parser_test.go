@@ -32,8 +32,8 @@ func TestParseLine(t *testing.T) {
 	expected := map[int]common.OpTrace{
 		1: []common.Operation{operation},
 	}
-	distTrace := map[int]common.OpTrace{}
-	actual := ParseLine("client=1 op=READ key=key value=value", distTrace)
+	actual := common.DistTrace{}
+	ParseLine("client=1 op=READ key=key value=value", actual)
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %v, Got %v", expected, actual)
 	}
