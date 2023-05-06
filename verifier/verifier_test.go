@@ -16,7 +16,7 @@ func contains(slice []string, value string) bool {
 	return false
 }
 
-func TestNotSerializable(t *testing.T) {
+func TestNotSequential(t *testing.T) {
 	// Client 1
 	w13 := common.Operation{
 		ClientId:   1,
@@ -95,8 +95,8 @@ func TestNotSerializable(t *testing.T) {
 		fmt.Println(consistencyTrace)
 	}
 
-	if contains(result.ConsistencyProvided, "serializable") {
-		t.Fatalf("Trace satisfies serializable but it shouldn't")
+	if contains(result.ConsistencyProvided, "sequential") {
+		t.Fatalf("Trace satisfies sequential but it shouldn't")
 	}
 
 }
