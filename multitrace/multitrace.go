@@ -57,10 +57,7 @@ func GetTraceConsistencies(distTrace common.DistTrace) set.StringSet {
 	go g.RunGenerator()
 
 	v := verifier.NewVerifier(permuteCh, resultCh)
-	go func() {
-		v.RunVerifier()
-		close(resultCh)
-	}()
+	go v.RunVerifier()
 
 	consistencies := []string{}
 	for result := range resultCh {

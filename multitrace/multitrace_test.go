@@ -68,7 +68,7 @@ func TestGetTraceConsistencies(t *testing.T) {
 	}
 
 	output := GetTraceConsistencies(distTrace)
-	if output.Exists("sequential consistency") {
+	if output.Exists("sequential") {
 		t.Fatalf("Trace satisfies sequential consistency but it shouldn't")
 	}
 }
