@@ -26,8 +26,13 @@ func MultiTraceEntryPoint() {
 	// - take the intersection of consistency models output by valid traces
 	// - remove all consistency models from the disallowed traces
 	consistencies := set.NewStringSet()
+	firstTrace := true
 	for _, validTrace := range validTraces {
-		consistencies = consistencies.Inter(GetTraceConsistencies(validTrace))
+		if firstTrace {
+			consistencies = GetTraceConsistencies(validTrace)
+		} else {
+			consistencies = consistencies.Inter(GetTraceConsistencies(validTrace))
+		}
 	}
 
 	for _, faultyTrace := range faultyTraces {
@@ -62,6 +67,7 @@ func GetTraceConsistencies(distTrace common.DistTrace) set.StringSet {
 	consistencies := []string{}
 	for result := range resultCh {
 		consistencies = append(consistencies, result.ConsistencyProvided...)
+		break
 	}
 
 	return set.NewStringSet(consistencies...)

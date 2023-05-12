@@ -1,0 +1,4 @@
+client=1 op=WRITE key=k value=v1
+client=1 op=WRITE key=k value=v2
+client=1 op=READ  key=k value=v1
+client=1 op=READ  key=k value=v2

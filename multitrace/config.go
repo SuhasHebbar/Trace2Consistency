@@ -11,7 +11,7 @@ type Config struct {
 
 func GetConfig() *Config {
 	// command line args
-	faultyTraces := flag.StringArrayP("--faulty", "-f", []string{}, "List of all faulty traces!")
+	faultyTraces := flag.StringArrayP("faulty", "f", []string{}, "List of all faulty traces!")
 
 	// parse command line args
 	flag.Parse()
