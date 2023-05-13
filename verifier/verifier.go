@@ -16,11 +16,11 @@ func NewVerifier(verifierCh chan common.OpTrace, resultCh chan common.VerifierRe
 func (v *Verifier) RunVerifier() {
 	numConsistencies := 0
 	consistencies := map[string]bool{
-		"sequential":                         false,
-		"monotonic reads":                    false,
-		"consistent prefix + read my writes": false,
-		"read my writes":                     false,
-		"eventual":                           false,
+		"sequential":                 false,
+		"monotonic reads":            false,
+		"read my writes":             false,
+		"monotonic + read my writes": false,
+		"eventual":                   false,
 	}
 
 	var verifierResult common.VerifierResult
@@ -47,11 +47,11 @@ func (v *Verifier) RunVerifier() {
 					verifierResult.ConsistencyProvided = append(verifierResult.ConsistencyProvided, "monotonic reads")
 					verifierResult.Trace = append(verifierResult.Trace, trace)
 				}
-			case "consistent prefix + read my writes":
-				if checkCPandReadMyWrites(trace) {
+			case "monotonic + read my writes":
+				if checkMonotonicandReadMyWrites(trace) {
 					consistencies[consistency] = true
 					numConsistencies++
-					verifierResult.ConsistencyProvided = append(verifierResult.ConsistencyProvided, "consistent prefix + read my writes")
+					verifierResult.ConsistencyProvided = append(verifierResult.ConsistencyProvided, "monotonic + read my writes")
 					verifierResult.Trace = append(verifierResult.Trace, trace)
 				}
 			case "read my writes":
@@ -114,7 +114,7 @@ func checkSequential(currTrace common.OpTrace) bool {
 }
 
 // Right now return true since CP is as good as eventual
-func checkCPandReadMyWrites(currTrace common.OpTrace) bool {
+func checkMonotonicandReadMyWrites(currTrace common.OpTrace) bool {
 	currSequenceNumber := make(map[int]map[string]int)
 	for i := len(currTrace) - 1; i >= 0; i-- {
 		opt := currTrace[i]
@@ -154,17 +154,31 @@ func checkCPandReadMyWrites(currTrace common.OpTrace) bool {
 // Reads have no constraints
 // All this reordering is w.r.t program order
 func checkMonotonicReads(currTrace common.OpTrace) bool {
-	currSequenceNumber := make(map[int]map[string]int)
+	currSequenceNumberForWrites := make(map[int]map[string]int)
+	currSequenceNumberForReads := make(map[int]map[string]int)
 	for _, opt := range currTrace {
 		if opt.Op == common.WRITE {
-			_, isPresent := currSequenceNumber[opt.ClientId]
+			_, isPresent := currSequenceNumberForWrites[opt.ClientId]
 			if !isPresent {
-				currSequenceNumber[opt.ClientId] = make(map[string]int)
-				currSequenceNumber[opt.ClientId][opt.Key] = opt.SequenceNo
+				currSequenceNumberForWrites[opt.ClientId] = make(map[string]int)
+				currSequenceNumberForWrites[opt.ClientId][opt.Key] = opt.SequenceNo
 			} else {
-				sequenceNo, isPresent := currSequenceNumber[opt.ClientId][opt.Key]
-				if !isPresent || opt.SequenceNo < sequenceNo {
-					currSequenceNumber[opt.ClientId][opt.Key] = opt.SequenceNo
+				sequenceNo, isPresent := currSequenceNumberForWrites[opt.ClientId][opt.Key]
+				if !isPresent || opt.SequenceNo > sequenceNo {
+					currSequenceNumberForWrites[opt.ClientId][opt.Key] = opt.SequenceNo
+				} else {
+					return false
+				}
+			}
+		} else {
+			_, isPresent := currSequenceNumberForReads[opt.ClientId]
+			if !isPresent {
+				currSequenceNumberForReads[opt.ClientId] = make(map[string]int)
+				currSequenceNumberForReads[opt.ClientId][opt.Key] = opt.SequenceNo
+			} else {
+				sequenceNo, isPresent := currSequenceNumberForReads[opt.ClientId][opt.Key]
+				if !isPresent || opt.SequenceNo > sequenceNo {
+					currSequenceNumberForReads[opt.ClientId][opt.Key] = opt.SequenceNo
 				} else {
 					return false
 				}

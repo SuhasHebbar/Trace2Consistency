@@ -17,59 +17,115 @@ func contains(slice []string, value string) bool {
 }
 
 func TestNotSequential(t *testing.T) {
+	// // Client 1
+	// w13 := common.Operation{
+	// 	ClientId:   1,
+	// 	SequenceNo: 0,
+	// 	Op:         common.WRITE,
+	// 	Key:        "Key",
+	// 	Value:      "3",
+	// }
+	// r12 := common.Operation{
+	// 	ClientId:   1,
+	// 	SequenceNo: 1,
+	// 	Op:         common.READ,
+	// 	Key:        "Key",
+	// 	Value:      "2",
+	// }
+	// r13 := common.Operation{
+	// 	ClientId:   1,
+	// 	SequenceNo: 2,
+	// 	Op:         common.WRITE,
+	// 	Key:        "Key",
+	// 	Value:      "3",
+	// }
+	// c1 := common.OpTrace{
+	// 	w13,
+	// 	r12,
+	// 	r13,
+	// }
+
+	// // Client 2
+	// w22 := common.Operation{
+	// 	ClientId:   2,
+	// 	SequenceNo: 0,
+	// 	Op:         common.WRITE,
+	// 	Key:        "Key",
+	// 	Value:      "2",
+	// }
+	// r23 := common.Operation{
+	// 	ClientId:   2,
+	// 	SequenceNo: 1,
+	// 	Op:         common.READ,
+	// 	Key:        "Key",
+	// 	Value:      "3",
+	// }
+	// r22 := common.Operation{
+	// 	ClientId:   2,
+	// 	SequenceNo: 2,
+	// 	Op:         common.READ,
+	// 	Key:        "Key",
+	// 	Value:      "2",
+	// }
+	// c2 := common.OpTrace{
+	// 	w22,
+	// 	r23,
+	// 	r22,
+	// }
+
 	// Client 1
-	w13 := common.Operation{
+	w11 := common.Operation{
 		ClientId:   1,
 		SequenceNo: 0,
 		Op:         common.WRITE,
-		Key:        "Key",
-		Value:      "3",
+		Key:        "K1",
+		Value:      "1",
 	}
-	r12 := common.Operation{
+	w12 := common.Operation{
 		ClientId:   1,
 		SequenceNo: 1,
-		Op:         common.READ,
-		Key:        "Key",
+		Op:         common.WRITE,
+		Key:        "K1",
 		Value:      "2",
 	}
 	r13 := common.Operation{
 		ClientId:   1,
 		SequenceNo: 2,
-		Op:         common.WRITE,
-		Key:        "Key",
-		Value:      "3",
+		Op:         common.READ,
+		Key:        "K1",
+		Value:      "2",
+	}
+	r14 := common.Operation{
+		ClientId:   1,
+		SequenceNo: 3,
+		Op:         common.READ,
+		Key:        "K1",
+		Value:      "1",
 	}
 	c1 := common.OpTrace{
-		w13,
-		r12,
+		w11,
+		w12,
 		r13,
+		r14,
 	}
 
 	// Client 2
-	w22 := common.Operation{
+	w21 := common.Operation{
 		ClientId:   2,
 		SequenceNo: 0,
 		Op:         common.WRITE,
-		Key:        "Key",
-		Value:      "2",
-	}
-	r23 := common.Operation{
-		ClientId:   2,
-		SequenceNo: 1,
-		Op:         common.READ,
-		Key:        "Key",
+		Key:        "K1",
 		Value:      "3",
 	}
 	r22 := common.Operation{
 		ClientId:   2,
-		SequenceNo: 2,
+		SequenceNo: 1,
 		Op:         common.READ,
-		Key:        "Key",
+		Key:        "K1",
 		Value:      "2",
 	}
 	c2 := common.OpTrace{
-		w22,
-		r23,
+		w21,
 		r22,
 	}
 
@@ -85,7 +141,7 @@ func TestNotSequential(t *testing.T) {
 	v := NewVerifier(verifierCh, resultch)
 	go v.RunVerifier()
 
-	result := <-v.resultCh
+	result := <-resultch
 
 	for _, consistency := range result.ConsistencyProvided {
 		fmt.Println(consistency)
