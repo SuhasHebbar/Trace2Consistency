@@ -5,6 +5,8 @@ import (
 	"cchkr/generator"
 	"cchkr/verifier"
 	"fmt"
+	"strconv"
+	"time"
 )
 
 func contains(slice []string, value string) int {
@@ -18,86 +20,70 @@ func contains(slice []string, value string) int {
 
 func main() {
 	// Record start time
-	//startTime := time.Now()
+	startTime := time.Now()
 
 	// // Run something
 	// time.Sleep(500 * time.Millisecond)
 	// Client 1
-	w11 := common.Operation{
-		ClientId:   1,
-		SequenceNo: 0,
-		Op:         common.WRITE,
-		Key:        "K1",
-		Value:      "1",
+	var w1 []common.Operation
+	for i := 0; i < 2; i++ {
+		w1 = append(w1, common.Operation{
+			ClientId:   1,
+			SequenceNo: 0,
+			Op:         common.WRITE,
+			Key:        "K1",
+			Value:      strconv.Itoa(i + 1),
+		})
 	}
-	w12 := common.Operation{
-		ClientId:   1,
-		SequenceNo: 1,
-		Op:         common.WRITE,
-		Key:        "K1",
-		Value:      "2",
+	var r1 []common.Operation
+	for i := 0; i < 2; i++ {
+		r1 = append(r1, common.Operation{
+			ClientId:   1,
+			SequenceNo: 0,
+			Op:         common.READ,
+			Key:        "K1",
+			Value:      strconv.Itoa(2 - i),
+		})
 	}
-	r13 := common.Operation{
-		ClientId:   1,
-		SequenceNo: 2,
-		Op:         common.READ,
-		Key:        "K1",
-		Value:      "2",
-	}
-	r14 := common.Operation{
-		ClientId:   1,
-		SequenceNo: 3,
-		Op:         common.READ,
-		Key:        "K1",
-		Value:      "1",
-	}
-	c1 := common.OpTrace{
-		w11,
-		w12,
-		r13,
-		r14,
+	c1 := common.OpTrace{}
+
+	for i := 0; i < 2; i++ {
+		c1 = append(c1, r1[i])
 	}
 
-	fmt.Println("Trace from Client 1 :")
-
-	for _, val := range c1 {
-		if val.Op == 0 {
-			fmt.Printf("Read => ")
-		} else {
-			fmt.Printf("Write => ")
-		}
-		fmt.Printf("Key : %v, Val : %v\n", val.Key, val.Value)
+	for i := 0; i < 2; i++ {
+		c1 = append(c1, w1[i])
 	}
 
-	// Client 2
-	w21 := common.Operation{
-		ClientId:   2,
-		SequenceNo: 0,
-		Op:         common.WRITE,
-		Key:        "K1",
-		Value:      "3",
-	}
-	r22 := common.Operation{
-		ClientId:   2,
-		SequenceNo: 1,
-		Op:         common.READ,
-		Key:        "K1",
-		Value:      "2",
-	}
-	c2 := common.OpTrace{
-		w21,
-		r22,
+	var w2 []common.Operation
+	for i := 2; i < 4; i++ {
+		w2 = append(w2, common.Operation{
+			ClientId:   1,
+			SequenceNo: 0,
+			Op:         common.WRITE,
+			Key:        "K1",
+			Value:      strconv.Itoa(i + 1),
+		})
 	}
 
-	fmt.Println("Trace from Client 2 :")
+	var r2 []common.Operation
+	for i := 2; i < 4; i++ {
+		r2 = append(r2, common.Operation{
+			ClientId:   1,
+			SequenceNo: 0,
+			Op:         common.READ,
+			Key:        "K1",
+			Value:      strconv.Itoa(4 - i),
+		})
+	}
+	c2 := common.OpTrace{}
 
-	for _, val := range c2 {
-		if val.Op == 0 {
-			fmt.Printf("Read => ")
-		} else {
-			fmt.Printf("Write => ")
-		}
-		fmt.Printf("Key : %v, Val : %v\n", val.Key, val.Value)
+	for i := 0; i < 2; i++ {
+		c2 = append(c2, r2[i])
+	}
+
+	for i := 0; i < 2; i++ {
+		c2 = append(c2, w2[i])
 	}
 
 	distTrace := map[int]common.OpTrace{
@@ -118,26 +104,26 @@ func main() {
 	result := <-resultch
 
 	// Record end time
-	//endTime := time.Now()
+	endTime := time.Now()
 
 	// Calculate elapsed time in milliseconds
-	//elapsedTime := endTime.Sub(startTime).Microseconds()
+	elapsedTime := endTime.Sub(startTime).Microseconds()
 
-	//fmt.Printf("Elapsed time: %d milliseconds\n", elapsedTime)
+	fmt.Printf("Elapsed time: %d microseconds\n", elapsedTime)
 
 	idx := contains(result.ConsistencyProvided, "eventual")
 	if idx != -1 {
-		consistencyTrace := result.Trace[idx]
+		//consistencyTrace := result.Trace[idx]
 
 		fmt.Println("Given trace provides eventual consistency for the permutation :")
 
-		for _, val := range consistencyTrace {
-			if val.Op == 0 {
-				fmt.Printf("Read => ")
-			} else {
-				fmt.Printf("Write => ")
-			}
-			fmt.Printf("Key : %v, Val : %v\n", val.Key, val.Value)
-		}
+		// for _, val := range consistencyTrace {
+		// 	if val.Op == 0 {
+		// 		fmt.Printf("Read => ")
+		// 	} else {
+		// 		fmt.Printf("Write => ")
+		// 	}
+		// 	fmt.Printf("Key : %v, Val : %v\n", val.Key, val.Value)
+		// }
 	}
 }
