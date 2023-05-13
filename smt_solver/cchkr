@@ -1,0 +1,169 @@
+#!/usr/bin/env python
+from enum import Enum
+from dataclasses import dataclass
+import typing
+from z3 import *
+import sys
+
+filename = sys.argv[1]
+print(filename)
+
+class OperationType(Enum):
+    Read = 0
+    Write = 1
+
+
+@dataclass
+class Op:
+    client_id: int
+    sequence_no: int
+    op: OperationType
+    key: str
+    value: str
+
+from collections import defaultdict
+
+previous_sequence_no = defaultdict(lambda: -1)
+input_trace = []
+print('The input trace is:')
+# Read trace file to get operations in trace.
+with open(filename) as f:
+    for line in f:
+        if line[-1] == '\n':
+            line = line[:-1]
+        print(line)
+        line = line.split(' ')
+        for i in range(len(line)):
+            line[i] = line[i].split('=')[1]
+        previous_sequence_no[line[0]] += 1
+        op = OperationType.Read if line[1] == 'READ' else OperationType.Write
+        input_trace.append(Op(int(line[0]), previous_sequence_no[line[0]], op, line[2], line[3]))
+
+trace_size = len(input_trace)
+trace_by_key = {}
+for v in input_trace:
+    if v.key in trace_by_key:
+        trace_by_key[v.key].append(v)
+    else:
+        trace_by_key[v.key] = [v]
+
+solver = Solver()
+
+IntType = IntSort()
+StringType = StringSort()
+
+z3OperationEnum, (z3OperationEnumRead, z3OperationEnumWrite) = EnumSort("OpT", ["Read", "Write"])
+
+z3OperationType = Datatype("Operation")
+z3OperationType.declare(
+    "Op", ("client_id", IntType), ("sequence_no", IntType), ("op", z3OperationEnum), ("key", StringType), ("value", StringType)
+)
+z3OperationType = z3OperationType.create()
+
+# Specify getters of member properties of z3OperationType
+z3_get_client_id = z3OperationType.client_id
+z3_get_sequence_no = z3OperationType.sequence_no
+z3_get_operation_type = z3OperationType.op
+z3_get_key = z3OperationType.key
+z3_get_value = z3OperationType.value
+
+
+def print_trace_array(m, a):
+    arr = []
+    for i in range(trace_size):
+        arr.append(m.eval(a[i]))
+    print(arr)
+
+# z3 map constant for last seen value by key.
+last_seen_values = K(StringSort(), StringVal(""))
+valid_keys = K(StringSort(), False)
+
+
+# Collection of trace operations represented in z3 initialized
+# to an empty sequence
+z3_trace_operations = Empty(SeqSort(z3OperationType))
+
+# z3 variable representing final ordering of trace
+final_trace_ordering = Const('ftrace', SeqSort(IntSort()))
+# Assert that final_trace_ordering is the same size as the trace.
+solver.add(Length(final_trace_ordering) == trace_size)
+
+def seq_contains(s, v):
+    return Contains(s, Unit(IntVal(v)))
+
+
+for i, v in enumerate(input_trace):
+    key = v.key
+    op = z3OperationEnumRead if v.op == OperationType.Read else z3OperationEnumWrite
+    z3_operation = z3OperationType.Op(v.client_id, v.sequence_no, op, StringVal(v.key), StringVal(v.value))
+
+    z3_trace_operations = Concat(z3_trace_operations, Unit(z3_operation))
+
+    clause = seq_contains(final_trace_ordering, i)
+    solver.add(clause)
+
+for i in range(trace_size):
+    elem = z3_trace_operations[final_trace_ordering[i]]
+    key = z3_get_key(elem)
+    value = z3_get_value(elem)
+
+    # Condition to assert that a read to a value has a matching preceding write.
+    cond = Or(And(last_seen_values[key] == "", z3_get_operation_type(elem) == z3OperationEnumWrite), Implies(z3_get_operation_type(elem) == z3OperationEnumRead, last_seen_values[key] == value))
+
+    solver.add(cond)
+
+    last_seen_values = Store(last_seen_values, key, value)
+
+
+# Z3 mapping for last seen sequence number by client.
+prev_client_sequence_no = K(IntSort(), -1)
+
+final_trace = None
+
+# Store trace ordering generated model into final_trace
+def get_trace():
+    global final_trace
+    m = solver.model()
+    final_trace = [0 for i in range(trace_size)]
+    for i in range(trace_size):
+        v = int(str(m.eval(final_trace_ordering[i])))
+        final_trace[i] = input_trace[v]
+        
+
+print('=' * 100)
+if solver.check() == sat:
+    print("Eventually consistent")
+    get_trace()
+else:
+    print("Not eventually consistent")
+    sys.exit()
+
+solver.push()
+for i in range(trace_size):
+    elem = z3_trace_operations[final_trace_ordering[i]]
+    elem_client = z3_get_client_id(elem)
+    elem_seqno = z3_get_sequence_no(elem)
+
+    # Assert that elements of the trace are ordered by their sequence numbers
+    # with respect to the each client.
+    cond = prev_client_sequence_no[elem_client] < elem_seqno
+    solver.add(cond)
+
+    prev_client_sequence_no = Store(prev_client_sequence_no , elem_client, elem_seqno)
+
+if solver.check() == sat:
+    print("Sequentially consistent")
+    # print(s.model().eval(ftrace))
+    get_trace()
+else:
+    print("Not sequentially consistent")
+solver.pop()
+
+print('=' * 100)
+print('The above properties are obtained via the following ordering.')
+if final_trace is not None:
+    for i in final_trace:
+        op = 'READ' if i.op == OperationType.Read else 'WRITE'
+        print(f'client={i.client_id} op={op} key={i.key} value={i.value}')
+        # print(i)
+
